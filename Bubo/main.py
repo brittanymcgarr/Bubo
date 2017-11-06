@@ -9,7 +9,7 @@ from Brain.Brain import Brain
 def main():
     bubo = Brain()
     bubo.listen()
-    bubo.speak()
+    bubo.interpret()
 
 
 if __name__ == "__main__":
