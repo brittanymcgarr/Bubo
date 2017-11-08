@@ -8,8 +8,10 @@ from Brain.Brain import Brain
 
 def main():
     bubo = Brain()
-    bubo.listen()
-    bubo.interpret()
+
+    while bubo.active:
+        bubo.listen()
+        bubo.interpret()
 
 
 if __name__ == "__main__":
