@@ -28,6 +28,9 @@ class Brain:
         print("Brain module loaded")
 
     def listen(self):
+        if not self.state == 'LISTEN':
+            return
+
         recognizer = speech.Recognizer()
 
         with speech.Microphone() as source:
@@ -59,18 +62,28 @@ class Brain:
         if self.recent_command == "":
             return
 
-        if "weather" in self.recent_command:
+        self.state = 'COMMAND'
+        keywords = set(self.recent_command.split(' '))
+
+        if "weather" in keywords:
             self.weather_report()
             self.recent_command = ""
             self.speak()
-        elif "time" in self.recent_command:
+        elif "time" in keywords:
             self.time_report()
             self.recent_command = ""
             self.speak()
-        elif "sleep" in self.recent_command:
+        elif "sleep" in keywords:
             self.active = False
             self.recent_command = "Goodnight"
             self.speak()
+        else:
+            self.recent_command = ""
+            self.state = 'LISTEN'
+            return False
+
+        self.state = 'LISTEN'
+        return True
 
     def weather_report(self):
         weather = Weather()
