@@ -9,9 +9,11 @@ import json
 import time
 import datetime
 import calendar
+import re
 
 import speech_recognition as speech
 from weather import Weather
+import wikipedia
 
 
 class Brain:
@@ -74,10 +76,16 @@ class Brain:
             self.state = 'LISTEN'
             return
 
+        command = self.recent_command.split()
+        command = [word for word in command if word not in names]
+        self.recent_command = ' '.join(command)
+
         if "weather" in keywords:
             self.weather_report()
         elif "time" in keywords:
             self.time_report()
+        elif "define" in keywords:
+            self.define()
         elif "sleep" in keywords:
             self.active = False
             self.output = ["Goodnight"]
@@ -128,3 +136,25 @@ class Brain:
             result += "AM"
 
         self.output = [result]
+
+    def define(self):
+        try:
+            original = self.recent_command.split()
+            original.remove('define')
+            subject = ' '.join(original)
+        except ValueError:
+            subject = self.recent_command
+
+        try:
+            wiki = wikipedia.summary(subject, sentences=5)
+            regex = re.compile(r'([^\(]*)\([^\)]*\) *(.*)')
+            message = regex.match(wiki)
+
+            while message:
+                wiki = message.group(1) + message.group(2)
+                message = regex.match(wiki)
+
+            wiki = wiki.replace("'", "")
+            self.output = [wiki]
+        except wikipedia.exceptions.DisambiguationError as error:
+            self.output = ["I could not find that definition. You may try: {0}".format(error)]
