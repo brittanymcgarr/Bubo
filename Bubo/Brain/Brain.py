@@ -19,6 +19,7 @@ class Brain:
         self.recent_command = ""
         self.output = ""
         self.active = True
+        self.state = 'LISTEN'
 
         with open("profile/data.json") as file_data:
             profile = json.load(file_data)
@@ -65,25 +66,28 @@ class Brain:
         self.state = 'COMMAND'
         keywords = set(self.recent_command.split(' '))
 
+        names = ["bibo", "bebo", "bubo", "fubo",
+                 "bhutto", "bebo", "boohbah"]
+        names = set(names)
+
+        if not names.intersection(keywords):
+            self.state = 'LISTEN'
+            return
+
         if "weather" in keywords:
             self.weather_report()
-            self.recent_command = ""
-            self.speak()
         elif "time" in keywords:
             self.time_report()
-            self.recent_command = ""
-            self.speak()
         elif "sleep" in keywords:
             self.active = False
-            self.recent_command = "Goodnight"
+            self.output = ["Goodnight"]
             self.speak()
-        else:
-            self.recent_command = ""
-            self.state = 'LISTEN'
-            return False
+            return
 
+        self.speak()
+        self.recent_command = ""
         self.state = 'LISTEN'
-        return True
+        return
 
     def weather_report(self):
         weather = Weather()

@@ -12,7 +12,7 @@ with sr.Microphone() as source:
     print("Speak into the microphone")
     audio = recognizer.listen(source)
 
-with open("recording.wav", "wb") as recording:
+with open("../../transcripts/recording.wav", "wb") as recording:
     recording.write(audio.get_wav_data())
 
 try:
