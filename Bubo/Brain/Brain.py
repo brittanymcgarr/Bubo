@@ -6,14 +6,12 @@
 
 import os
 import json
-import time
-import datetime
-import calendar
-import re
 
 import speech_recognition as speech
-from weather import Weather
-import wikipedia
+
+import define
+import timekeeper
+import weatherreporter
 
 
 class Brain:
@@ -81,11 +79,11 @@ class Brain:
         self.recent_command = ' '.join(command)
 
         if "weather" in keywords:
-            self.weather_report()
+            self.output = weatherreporter.weather_report(self.city)
         elif "time" in keywords:
-            self.time_report()
+            self.output = timekeeper.time_report()
         elif "define" in keywords:
-            self.define()
+            self.output = define.define(self.recent_command)
         elif "sleep" in keywords:
             self.active = False
             self.output = ["Goodnight"]
@@ -96,65 +94,3 @@ class Brain:
         self.recent_command = ""
         self.state = 'LISTEN'
         return
-
-    def weather_report(self):
-        weather = Weather()
-        location = weather.lookup_by_location(self.city)
-        forecasts = location.forecast()
-
-        self.output = []
-        self.output.append("Your three day weather forecast for " + self.city + " ")
-
-        if not forecasts or len(forecasts) < 3:
-            self.output.append("is not available at this time.")
-            return
-
-        today = datetime.datetime.now()
-
-        for count in range(0, 3):
-            date = today + datetime.timedelta(days=count)
-            report = calendar.day_name[date.weekday()]
-            report += " It will be " + forecasts[count].text()
-            report += " with a low of " + forecasts[count].low()
-            report += " and a high of " + forecasts[count].high()
-            self.output.append(report)
-
-    def time_report(self):
-        time_string = time.strftime("%H:%M:%S")
-        times = time_string.split(':')
-        night = False
-
-        if int(times[0]) > 12:
-            times[0] = str(int(times[0]) - 12)
-            night = True
-
-        result = "The time is " + times[0] + " " + times[1]
-
-        if night:
-            result += "PM"
-        else:
-            result += "AM"
-
-        self.output = [result]
-
-    def define(self):
-        try:
-            original = self.recent_command.split()
-            original.remove('define')
-            subject = ' '.join(original)
-        except ValueError:
-            subject = self.recent_command
-
-        try:
-            wiki = wikipedia.summary(subject, sentences=5)
-            regex = re.compile(r'([^\(]*)\([^\)]*\) *(.*)')
-            message = regex.match(wiki)
-
-            while message:
-                wiki = message.group(1) + message.group(2)
-                message = regex.match(wiki)
-
-            wiki = wiki.replace("'", "")
-            self.output = [wiki]
-        except wikipedia.exceptions.DisambiguationError as error:
-            self.output = ["I could not find that definition. You may try: {0}".format(error)]
